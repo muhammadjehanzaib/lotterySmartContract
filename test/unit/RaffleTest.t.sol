@@ -97,24 +97,14 @@ contract RaffleTest is Test {
         vm.prank(player);
         raffle.enterRaffle{value: 0.1 ether}();
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Raffle.Raffle_UpKeepNoted.selector,
-                0.1 ether,
-                1,
-                raffle.getRaffleCurrentState()
-            )
+            abi.encodeWithSelector(Raffle.Raffle_UpKeepNoted.selector, 0.1 ether, 1, raffle.getRaffleCurrentState())
         );
         raffle.raffleWinner();
     }
 
-    function testFullfillrandomOnlyBeCalledAfterPerformUpKeep(
-        uint256 _requestId
-    ) public RaffleEnteredAndTimePassed {
+    function testFullfillrandomOnlyBeCalledAfterPerformUpKeep(uint256 _requestId) public RaffleEnteredAndTimePassed {
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-        VRFCoordinatorV2_5Mock(_vrfCoordinator).fulfillRandomWords(
-            _requestId,
-            address(raffle)
-        );
+        VRFCoordinatorV2_5Mock(_vrfCoordinator).fulfillRandomWords(_requestId, address(raffle));
     }
 
     modifier RaffleEnteredAndTimePassed() {
@@ -129,29 +119,22 @@ contract RaffleTest is Test {
         vm.recordLogs();
         raffle.raffleWinner();
         Vm.Log[] memory entries = vm.getRecordedLogs();
-
         // console2.logBytes32(entries[1].topics[1]);
-        bytes32 requestId = entries[0].topics[0];
+        bytes32 requestId = entries[1].topics[1];
 
         Raffle.RaffleState raffleState = raffle.getRaffleCurrentState();
         assert(requestId > 0);
         assert(uint256(raffleState) == 1);
     }
 
-    function testFulfillRandomWordsPicksAWinnerRestesAndSendsMoney()
-        public
-        RaffleEnteredAndTimePassed
-    {
+    function testFulfillRandomWordsPicksAWinnerRestesAndSendsMoney() public RaffleEnteredAndTimePassed {
         // Arrange
+        address expectedWinner = address(1);
 
         uint256 additionalEntrants = 4;
         uint256 startingIndex = 1;
 
-        for (
-            uint256 i = startingIndex;
-            i < startingIndex + additionalEntrants;
-            i++
-        ) {
+        for (uint256 i = startingIndex; i < startingIndex + additionalEntrants; i++) {
             address playerAddress = address(uint160(i));
             hoax(playerAddress, 1 ether);
             raffle.enterRaffle{value: 0.1 ether}();
@@ -159,6 +142,9 @@ contract RaffleTest is Test {
 
         uint256 prize = 0.1 ether * (additionalEntrants + 1);
 
+        uint256 previousTimeStamp = raffle.getLastTimeStamp();
+        uint256 previousWinnerBalance = expectedWinner.balance;
+        
         vm.recordLogs();
         raffle.raffleWinner(); // emits requestId
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -167,18 +153,16 @@ contract RaffleTest is Test {
         // Log the requestId
         // console2.log(requestId);
 
-        uint256 previousTimeStamp = raffle.getLastTimeStamp();
-
         // pretend to be Chainlink VRF
-        VRFCoordinatorV2_5Mock(_vrfCoordinator).fulfillRandomWords(
-            uint256(requestId),
-            address(raffle)
-        );
+        VRFCoordinatorV2_5Mock(_vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
+
+        // uint256 winnerBalance = raffle.getRecentWinner().balance;    
 
         assert(uint256(raffle.getRaffleCurrentState()) == 0);
         assert(raffle.getRecentWinner() != address(0));
         assert(raffle.getRaffleNoOfPlayers() == 0);
         assert(raffle.getLastTimeStamp() > previousTimeStamp);
-        assert(raffle.getRecentWinner().balance == 0.1 ether + prize);
+        assert(raffle.getRecentWinner() == expectedWinner);
+        assert(raffle.getRecentWinner().balance == previousWinnerBalance + prize);
     }
 }

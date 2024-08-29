@@ -45,7 +45,7 @@ Usage: The contract enables participants to enter a lottery by paying a fee. Cha
 * foundry 
   * You'll know you did it right if you can run forge --version and you see a response like forge 0.2.0 (816e00b 2023-03-16T00:05:26.396218Z)
  
- # Qick Start
+ # Qickstart
 > git clone https://github.com/muhammadjehanzaib/lotterySmartContract.git
 > cd lotterySmartContract
 > forge build
@@ -61,7 +61,6 @@ If you're having a hard time installing the chainlink library, you can optionall
 # Testing
 > forge test
 
-# Thank You
 
 
 
