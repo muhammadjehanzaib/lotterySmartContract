@@ -31,7 +31,7 @@ contract CreateSubscription is Script {
     }
 }
 
-contract FundSubscription is Script, CodeConstants   {
+contract FundSubscription is Script, CodeConstants {
     uint256 public constant FUND_AMOUNT = 3 ether;
 
     function createFundSubscriptionByConfig() public {
@@ -45,11 +45,11 @@ contract FundSubscription is Script, CodeConstants   {
     function fundSubscription(address vrfCoordinator, uint256 subscriptionId, address linkToken) public {
         if (block.chainid == ANVIL_LOCAL_CHAIN_ID) {
             vm.startBroadcast();
-            VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subscriptionId, FUND_AMOUNT);
+            VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subscriptionId, FUND_AMOUNT * 100);
             vm.stopBroadcast();
-        }else{
+        } else {
             vm.startBroadcast();
-            LinkToken(linkToken).transferAndCall(vrfCoordinator, FUND_AMOUNT,abi.encode(subscriptionId));
+            LinkToken(linkToken).transferAndCall(vrfCoordinator, FUND_AMOUNT, abi.encode(subscriptionId));
             vm.stopBroadcast();
         }
     }
@@ -59,20 +59,19 @@ contract FundSubscription is Script, CodeConstants   {
     }
 }
 
-contract AddConsumer is Script{
+contract AddConsumer is Script {
     function addConsumerByUsingConfig(address recentDeployment) public {
         HelperConfig helperConfig = new HelperConfig();
         uint256 subId = helperConfig.getChain().subscriptionId;
         address vrf_Coordinator = helperConfig.getChain()._vrfCoordinator;
-        addConsumer(recentDeployment,vrf_Coordinator, subId);
+        addConsumer(recentDeployment, vrf_Coordinator, subId);
     }
+
     function addConsumer(address contractToAddToVRF, address vrfCoordinator, uint256 subId) public {
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(subId,contractToAddToVRF);
+        VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(subId, contractToAddToVRF);
         vm.stopBroadcast();
     }
-
-
 
     function run() external {
         address mostRecetDeployed = DevOpsTools.get_most_recent_deployment("Raffle", block.chainid);

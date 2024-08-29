@@ -6,7 +6,7 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
 /**
- * @title Raffle Smart contract
+ * @title Raffle lottery Smart contract
  * @author Muhammad Jehanzaib
  * @notice This contract is for Testing Raffle Script
  * @dev
@@ -41,6 +41,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     event RaffleEntered(address indexed player);
     event WinnerPicked(address indexed recentWinner);
+    event RequestedRaffleWinner(uint256 requestID);
 
     constructor(
         uint256 entranceFee,
@@ -110,7 +111,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
             extraArgs: VRFV2PlusClient._argsToBytes(VRFV2PlusClient.ExtraArgsV1({nativePayment: false}))
         });
 
-        s_vrfCoordinator.requestRandomWords(requestId);
+        uint256 req = s_vrfCoordinator.requestRandomWords(requestId);
+        emit RequestedRaffleWinner(req);
     }
 
     // Checks, Effects and Interactions
@@ -143,5 +145,13 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     function getRaffleNoOfPlayers() public view returns (uint256) {
         return s_player.length;
+    }
+
+    function getRecentWinner() public view returns (address) {
+        return s_recentWinner;
+    }
+
+    function getLastTimeStamp() public view returns (uint256) {
+        return s_lastTimeStamp;
     }
 }

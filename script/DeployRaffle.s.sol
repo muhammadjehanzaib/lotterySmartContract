@@ -23,8 +23,9 @@ contract DeployRaffle is Script {
 
             //fund it
             FundSubscription fundSubscription = new FundSubscription();
-            fundSubscription.fundSubscription(networkConfigurations._vrfCoordinator,networkConfigurations.subscriptionId,networkConfigurations.link);
-            
+            fundSubscription.fundSubscription(
+                networkConfigurations._vrfCoordinator, networkConfigurations.subscriptionId, networkConfigurations.link
+            );
         }
 
         vm.startBroadcast();
@@ -38,7 +39,9 @@ contract DeployRaffle is Script {
         );
         vm.stopBroadcast();
         AddConsumer addConsumer = new AddConsumer();
-        addConsumer.addConsumer(address(raffle), networkConfigurations._vrfCoordinator, networkConfigurations.subscriptionId);
+        addConsumer.addConsumer(
+            address(raffle), networkConfigurations._vrfCoordinator, networkConfigurations.subscriptionId
+        );
         return (raffle, helperConfig);
     }
 }
